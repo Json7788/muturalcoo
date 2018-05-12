@@ -21,6 +21,7 @@ import com.iflytek.cloud.RecognizerResult;
 import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechError;
 import com.iflytek.cloud.SpeechRecognizer;
+import com.iflytek.cloud.SpeechSynthesizer;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,7 +34,7 @@ import butterknife.ButterKnife;
 
 import static com.fish.muturalcoo.Constant.IAT_PUNC_PREFERENCE;
 
-public class WaveLineActivity extends AppCompatActivity implements InitListener, RecognizerListener,View.OnClickListener {
+public class WaveLineActivity extends AppCompatActivity implements InitListener, RecognizerListener, View.OnClickListener {
 
     @Bind(R.id.line_wave_view)
     LineWaveVoiceView mLineWaveView;
@@ -53,6 +54,9 @@ public class WaveLineActivity extends AppCompatActivity implements InitListener,
     private boolean mTranslateEnable;
     // 用HashMap存储听写结果
     private HashMap<String, String> mIatResults = new LinkedHashMap<String, String>();
+    private SpeechSynthesizer mTts;
+    private String result;
+    private String language;
 
 
     @Override
@@ -73,6 +77,8 @@ public class WaveLineActivity extends AppCompatActivity implements InitListener,
         // 使用SpeechRecognizer对象，可根据回调消息自定义界面；
         mIat = SpeechRecognizer.createRecognizer(this, this);
 //        startIat("zh_cn");
+        //初始化合成引擎
+        mTts = SpeechSynthesizer.createSynthesizer(this, this);
     }
 
     private void initListener() {
@@ -108,7 +114,7 @@ public class WaveLineActivity extends AppCompatActivity implements InitListener,
     ///////////////////////////////////////////////////////////////////////////`
     @Override
     public void onInit(int code) {
-         Log.d("WaveLineActivity", "SpeechRecognizer init() code = " + code);
+        Log.d("WaveLineActivity", "SpeechRecognizer init() code = " + code);
         if (code != ErrorCode.SUCCESS) {
             showTip("初始化失败，错误码：" + code);
         }
@@ -119,7 +125,9 @@ public class WaveLineActivity extends AppCompatActivity implements InitListener,
     ///////////////////////////////////////////////////////////////////////////
     @Override
     public void onVolumeChanged(int volume, byte[] data) {
-//        showTip("当前正在说话，音量大小：" + volume);
+        Log.d("WaveLineActivity", "volume:" + volume);
+        mLineWaveView.refreshElement((volume + 0.5f) / 10.f);
+        showTip("当前正在说话，音量大小：" + volume);
 //        Log.d("WaveLineActivity", "返回音频数据：" + data.length);
     }
 
@@ -136,7 +144,7 @@ public class WaveLineActivity extends AppCompatActivity implements InitListener,
 
     @Override
     public void onResult(RecognizerResult results, boolean isLast) {
-       Log.d("WaveLineActivity", results.getResultString());
+        Log.d("WaveLineActivity", results.getResultString());
         if (mTranslateEnable) {
             printTransResult(results);
         } else {
@@ -145,6 +153,7 @@ public class WaveLineActivity extends AppCompatActivity implements InitListener,
 
         if (isLast) {
             // TODO 最后的结果
+            startTts(result,language,true);
         }
     }
 
@@ -169,7 +178,71 @@ public class WaveLineActivity extends AppCompatActivity implements InitListener,
         //	}
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+// 合成回调
+///////////////////////////////////////////////////////////////////////////
+    /**
+     * 合成回调监听。
+     */
+    private com.iflytek.cloud.SynthesizerListener mTtsListener = new com.iflytek.cloud.SynthesizerListener() {
 
+        @Override
+        public void onSpeakBegin() {
+            showTip("开始播放");
+        }
+
+        @Override
+        public void onSpeakPaused() {
+            showTip("暂停播放");
+        }
+
+        @Override
+        public void onSpeakResumed() {
+            showTip("继续播放");
+        }
+
+        @Override
+        public void onBufferProgress(int percent, int beginPos, int endPos,
+                                     String info) {
+            // 合成进度
+//            mPercentForBuffering = percent;
+//            showTip(String.format(getString(R.string.tts_toast_format),
+//                    mPercentForBuffering, mPercentForPlaying));
+        }
+
+        @Override
+        public void onSpeakProgress(int percent, int beginPos, int endPos) {
+            // 播放进度
+//            mPercentForPlaying = percent;
+//            showTip(String.format(getString(R.string.tts_toast_format),
+//                    mPercentForBuffering, mPercentForPlaying));
+        }
+
+        @Override
+        public void onCompleted(SpeechError error) {
+            if (error == null) {
+                showTip("播放完成");
+            } else if (error != null) {
+                showTip(error.getPlainDescription(true));
+            }
+        }
+
+        @Override
+        public void onEvent(int eventType, int arg1, int arg2, Bundle obj) {
+            // 以下代码用于获取与云端的会话id，当业务出错时将会话id提供给技术支持人员，可用于查询会话日志，定位出错原因
+            // 若使用本地能力，会话id为null
+            //	if (SpeechEvent.EVENT_SESSION_ID == eventType) {
+            //		String sid = obj.getString(SpeechEvent.KEY_EVENT_SESSION_ID);
+            //		Log.d(TAG, "session id =" + sid);
+            //	}
+        }
+    };
+
+    /**
+     * 语音识别
+     *
+     * @param iatLanguageCode
+     */
     private void startIat(String iatLanguageCode) {
         // 设置参数this
         setParam(iatLanguageCode);
@@ -183,6 +256,70 @@ public class WaveLineActivity extends AppCompatActivity implements InitListener,
         }
     }
 
+
+    private void startTts(String text, String language, boolean isSpeake) {
+        int code = -11;
+        String voicer = "";
+
+        if (language.equals("zh_cn")) {
+            voicer = "xiaoyan";
+        } else {
+            voicer = "catherine";
+        }
+        // 设置参数
+        setTtsParam(voicer);
+
+        if (isSpeake) {
+
+            code = mTts.startSpeaking(text, mTtsListener);
+        } else {
+
+            /**
+             //			 * 只保存音频不进行播放接口,调用此接口请注释startSpeaking接口
+             //			 * text:要合成的文本，uri:需要保存的音频全路径，listener:回调接口
+             //			*/
+            String path = Environment.getExternalStorageDirectory() + "/tts.ico";
+            code = mTts.synthesizeToUri(text, path, mTtsListener);
+        }
+
+        if (code != ErrorCode.SUCCESS) {
+            showTip("语音合成失败,错误码: " + code);
+        }
+    }
+
+    private void setTtsParam(String voicer) {
+        // 清空参数
+        mTts.setParameter(SpeechConstant.PARAMS, null);
+        // 根据合成引擎设置相应参数
+        if (mEngineType.equals(SpeechConstant.TYPE_CLOUD)) {
+            mTts.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
+            // 设置在线合成发音人
+            mTts.setParameter(SpeechConstant.VOICE_NAME, voicer);
+            //设置合成语速
+            mTts.setParameter(SpeechConstant.SPEED, "50");
+            //设置合成音调
+            mTts.setParameter(SpeechConstant.PITCH, "50");
+            //设置合成音量
+            mTts.setParameter(SpeechConstant.VOLUME, "50");
+        } else {
+            mTts.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_LOCAL);
+            // 设置本地合成发音人 voicer为空，默认通过语记界面指定发音人。
+            mTts.setParameter(SpeechConstant.VOICE_NAME, "");
+            /**
+             * TODO 本地合成不设置语速、音调、音量，默认使用语记设置
+             * 开发者如需自定义参数，请参考在线合成参数设置
+             */
+        }
+        //设置播放器音频流类型
+        mTts.setParameter(SpeechConstant.STREAM_TYPE, "3");
+        // 设置播放合成音频打断音乐播放，默认为true
+        mTts.setParameter(SpeechConstant.KEY_REQUEST_FOCUS, "true");
+
+        // 设置音频保存路径，保存音频格式支持pcm、wav，设置路径为sd卡请注意WRITE_EXTERNAL_STORAGE权限
+        // 注：AUDIO_FORMAT参数语记需要更新版本才能生效
+        mTts.setParameter(SpeechConstant.AUDIO_FORMAT, "wav");
+        mTts.setParameter(SpeechConstant.TTS_AUDIO_PATH, Environment.getExternalStorageDirectory() + "/msc/tts.wav");
+    }
 
     private void setParam(String iatLanguageCode) {
         // 清空参数
@@ -258,6 +395,7 @@ public class WaveLineActivity extends AppCompatActivity implements InitListener,
         }
 
         Log.d("WaveLineActivity", resultBuffer.toString());
+        result = resultBuffer.toString();
         editResult.setText(resultBuffer.toString());
         editResult.setSelection(editResult.length());
     }
@@ -288,18 +426,30 @@ public class WaveLineActivity extends AppCompatActivity implements InitListener,
             mIat.cancel();
             mIat.destroy();
         }
+
+        if (null != mTts) {
+            mTts.stopSpeaking();
+            // 退出时释放连接
+            mTts.destroy();
+        }
     }
 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btn_lang_first:
+                language = "zh_cn";
                 startIat("zh_cn");
+                result="";
                 break;
             case R.id.btn_lang_second:
+                language="en_us";
+                result="";
                 startIat("en_us");
 
                 break;
         }
     }
+
+
 }

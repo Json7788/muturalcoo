@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.fish.muturalcoo.chart.HeartActivity">
+    <com.fish.muturalcoo.chart.HeartLineView
+        android:background="#28262D"
+        android:id="@+id/heart_line_view"
+        android:layout_width="match_parent"
+        app:y_bottom_space_h="20dp"
+        app:x_divider_color="#f8cac2"
+        app:data_font_color_h="#f8cac2"
+        app:xy_font_size_h="10sp"
+        app:y_top_space_h="0dp"
+        android:layout_height="300dp" />
+
+</android.support.constraint.ConstraintLayout>

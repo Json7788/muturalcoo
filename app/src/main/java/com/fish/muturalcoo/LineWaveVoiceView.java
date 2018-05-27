@@ -91,8 +91,9 @@ public class LineWaveVoiceView extends View {
         paint.setStrokeWidth(0);
         paint.setColor(textColor);
         paint.setTextSize(textSize);
-        float textWidth = paint.measureText(text);
-        canvas.drawText(text, widthcentre - textWidth / 2, heightcentre - (paint.ascent() + paint.descent()) / 2, paint);
+//        float textWidth = paint.measureText(text);
+        float textWidth = 0;
+//        canvas.drawText(text, widthcentre - textWidth / 2, heightcentre - (paint.ascent() + paint.descent()) / 2, paint);
 
         //更新左右两边的波纹矩形
         paint.setColor(lineColor);

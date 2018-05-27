@@ -17,4 +17,31 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+
+    <declare-styleable name="hpillar">
+        <!--XY轴颜色-->
+        <attr name="line_color_h" format="color"/>
+        <!--柱子右边文字颜色-->
+        <attr name="data_font_color_h" format="color" />
+        <!--X轴距离view左边和右边的距离-->
+        <attr name="x_left_space_h" format="dimension" />
+        <attr name="x_right_space_h" format="dimension" />
+        <!--Y轴距离view上边和下边的距离-->
+        <attr name="y_bottom_space_h" format="dimension" />
+        <attr name="y_top_space_h" format="dimension" />
+        <!--X轴刻度的高，Y轴刻度的宽-->
+        <attr name="x_divider_height" format="dimension" />
+        <attr name="y_divider_width" format="dimension" />
+        <!--XY轴刻度颜色-->
+        <attr name="x_divider_color" format="color" />
+        <attr name="y_divider_color" format="color" />
+        <!--刻度文本字体大小-->
+        <attr name="xy_font_size_h" format="dimension" />
+        <!--轴下面文本离X轴距离-->
+        <attr name="txt_x_space" format="dimension" />
+        <!--Y轴左边文本离Y轴距离-->
+        <attr name="txt_y_space" format="dimension" />
+        <!--每个柱子的高度-->
+        <attr name="pillar_height" format="dimension"/>
+    </declare-styleable>
 </resources>

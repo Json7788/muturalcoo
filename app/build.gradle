@@ -41,4 +41,8 @@ dependencies {
     implementation 'com.blankj:utilcode:1.15.0'
     //动态权限申请
     compile 'com.github.dfqin:grantor:2.1.0'
+    //gson
+    compile 'com.google.code.gson:gson:2.8.0'
+
+
 }

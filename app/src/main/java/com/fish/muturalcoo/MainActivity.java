@@ -17,6 +17,7 @@ import android.view.View;
 import com.fish.muturalcoo.base.BaseActivity;
 import com.fish.muturalcoo.chart.ChartActivity;
 import com.fish.muturalcoo.chart.HeartActivity;
+import com.fish.muturalcoo.map.MapActivity;
 import com.tbruyelle.rxpermissions2.Permission;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
@@ -115,7 +116,7 @@ public class MainActivity extends BaseActivity
         } else if (id == R.id.nav_slideshow) {
             openActivity(HeartActivity.class);
         } else if (id == R.id.nav_manage) {
-
+            openActivity(MapActivity.class);
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {

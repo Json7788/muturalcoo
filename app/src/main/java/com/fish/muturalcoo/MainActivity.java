@@ -17,11 +17,13 @@ import android.view.View;
 import com.fish.muturalcoo.base.BaseActivity;
 import com.fish.muturalcoo.chart.ChartActivity;
 import com.fish.muturalcoo.chart.HeartActivity;
-import com.github.dfqin.grantor.PermissionListener;
-import com.github.dfqin.grantor.PermissionsUtil;
+import com.tbruyelle.rxpermissions2.Permission;
+import com.tbruyelle.rxpermissions2.RxPermissions;
+
+import io.reactivex.functions.Consumer;
 
 public class MainActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener,PermissionListener {
+        implements NavigationView.OnNavigationItemSelectedListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,8 +55,8 @@ public class MainActivity extends BaseActivity
     }
 
     public void initData() {
-        PermissionsUtil.requestPermission(this,this,
-                new String[]{Manifest.permission_group.MICROPHONE, Manifest.permission_group.STORAGE});
+        requestEachRxPermission(Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_PHONE_STATE, Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION);
     }
 
     @Override
@@ -125,13 +127,29 @@ public class MainActivity extends BaseActivity
         return true;
     }
 
-    @Override
-    public void permissionGranted(@NonNull String[] permission) {
 
-    }
 
-    @Override
-    public void permissionDenied(@NonNull String[] permission) {
+
+    private void requestEachRxPermission(String... permissions) {
+        RxPermissions rxPermissions = new RxPermissions(this);
+        rxPermissions.requestEach(permissions).subscribe(new Consumer<Permission>() {
+            @Override
+            public void accept(@NonNull Permission permission) throws Exception {
+                if (permission.granted) {
+                    if (permission.name.equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+//                        mExecutorService.execute(() -> SaveFileTts.getInstance().initialTts(HomeActivity.this, handler, HomeActivity.this));
+                    }
+//                    Toast.makeText(getApplicationContext(), "已获取权限" + permission.name, Toast.LENGTH_SHORT).show();
+                } else if (permission.shouldShowRequestPermissionRationale) {
+                    //拒绝权限请求
+//                    Toast.makeText(getApplicationContext(), "已拒绝权限" + permission.name, Toast.LENGTH_SHORT).show();
+                } else {
+                    // 拒绝权限请求,并不再询问
+                    // 需要进入设置界面去设置权限
+//                    Toast.makeText(getApplicationContext(), "已拒绝权限" + permission.name + "并不再询问", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
     }
 }

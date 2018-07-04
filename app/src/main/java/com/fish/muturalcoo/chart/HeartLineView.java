@@ -15,9 +15,9 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import com.fish.muturalcoo.R;
+import com.fish.muturalcoo.entity.HeartRatePoint;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -48,10 +48,10 @@ public class HeartLineView extends View {
 
     private float FULL_AMOUNT = 7000;
 
-    private List<Integer> dataList = new ArrayList<>();
     private float xyFontSize;
     private Paint dashPaint;
     private Paint paintCurve;
+    private Paint paint;
 
     public HeartLineView(Context context) {
         this(context, null);
@@ -79,12 +79,19 @@ public class HeartLineView extends View {
 
 
         paintCurve = new Paint();
+        paint = new Paint();
         paintCurve.setStyle(Paint.Style.STROKE);
+        paint.setStyle(Paint.Style.STROKE);
         paintCurve.setDither(true);
+        paint.setDither(true);
         paintCurve.setAntiAlias(true);
+        paint.setAntiAlias(true);
         paintCurve.setStrokeWidth(3);
+        paint.setStrokeWidth(3);
         PathEffect pathEffect = new CornerPathEffect(25);
         paintCurve.setPathEffect(pathEffect);
+        paint.setPathEffect(new DashPathEffect(new float[]{5, 5}, 0));
+//        paint.setPathEffect(pathEffect);
 
 
     }
@@ -111,7 +118,7 @@ public class HeartLineView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (dataList.size() == 0) return;
+//        if (dataList.size() == 0) return;
         /**
          * 绘制ＸＹ轴
          */
@@ -175,10 +182,6 @@ public class HeartLineView extends View {
         /**
          * 绘制X轴刻度 和 X轴下面的文字
          */
-//        dataList
-        int maxValue = Collections.max(dataList);
-        int average = maxValue / 4;
-        FULL_AMOUNT = average * 5;
         //获取x轴刻度间距  view宽度 - x轴左边距 - X轴右边距 - Y轴刻度宽度一半 - 柱子距离刻度的距离
         float xSpaceVertical = (getWidth() - xLeftSpace - xRightSpace - yDividerWidth / 2 - pillarMarginY) / 6;
         //X刻度上下Y坐标
@@ -224,22 +227,25 @@ public class HeartLineView extends View {
         float perX = xSpaceVertical / 5;
         float perY = spaceVertical / 40;
         Path path = new Path();
-        for (int x = 0; x < dataList.size(); x++) {
+        for (int x = 0; x < heartRatePointsMax.size(); x++) {
             if (x == 0) {
 
-                path.moveTo(xLeftSpace, xLineTop - (dataList.get(x) - 40) * perY);
+                path.moveTo(xLeftSpace, xLineTop - (heartRatePointsMax.get(x).getValue() - 40) * perY);
             } else {
-                path.lineTo(xLeftSpace + x * perX, xLineTop - (dataList.get(x) - 40) * perY);
+                path.lineTo(xLeftSpace + x * perX, xLineTop - (heartRatePointsMax.get(x).getValue() - 40) * perY);
             }
 
-            if ((x == dataList.size() - 1)) {
-                path.lineTo(getWidth()-xRightSpace, xLineTop - (dataList.get(x) - 40) * perY);
+            if ((x == heartRatePointsMax.size() - 1)) {
+                path.lineTo(getWidth()-xRightSpace, xLineTop - (heartRatePointsMax.get(x).getValue() - 40) * perY);
             }
 //            柱子Y轴上坐标：view高度 - Y轴距离view下边的距离 - Y轴刻度高度*(x+1) - 柱子高度一半
         }
-        paintCurve.setStrokeWidth(8);
-        paintCurve.setColor(getResources().getColor(R.color.color_FFEF00 ));
-        canvas.drawPath(path, paintCurve);
+//        paintCurve.setStrokeWidth(8);
+//        paintCurve.setColor(getResources().getColor(R.color.color_FFEF00 ));
+//        canvas.drawPath(path, paintCurve);
+        paint.setStrokeWidth(2);
+        paint.setColor(getResources().getColor(R.color.color_FFEF00 ));
+        canvas.drawPath(path, paint);
 
 
     }
@@ -247,10 +253,10 @@ public class HeartLineView extends View {
     private void initPaintColor(int color) {
         mPaint.setColor(color);
     }
-
-    public void setData(List<Integer> data) {
-        dataList.clear();
-        dataList.addAll(data);
+    private List<HeartRatePoint> heartRatePointsMax = new ArrayList<>();
+    public void setData( List<HeartRatePoint> data) {
+        heartRatePointsMax.clear();
+        heartRatePointsMax.addAll(data);
         invalidate();
     }
 

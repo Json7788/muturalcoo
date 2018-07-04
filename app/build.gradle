@@ -51,4 +51,5 @@ dependencies {
     compile 'com.trello.rxlifecycle2:rxlifecycle-components:2.0.1'
 
     implementation files('libs/BaiduLBS_Android.jar')
+
 }
